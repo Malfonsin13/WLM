@@ -1,18 +1,40 @@
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
+    background-color: #0A2351;
+    color: #B69240;
 }
 
 h1 {
-    color: #333;
+    color: #FFC72C;
+}
+
+button {
+    background-color: #FFC72C;
+    color: #0A2351;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+button:hover {
+    background-color: #B69240;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 20px;
 }
 
 table, th, td {
-    border: 1px solid black;
+    border: 1px solid #B69240;
     padding: 10px;
+    text-align: center;
+}
+
+th {
+    background-color: #FFC72C;
+    color: #0A2351;
 }
