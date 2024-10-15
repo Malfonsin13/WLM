@@ -51,8 +51,8 @@ def index():
                 request.form['peak_arm_speed'],
                 request.form['pitched_in_game'],
                 request.form['touched_mound'],
-                request.form['avg_fb_velo'],
-                request.form['max_fb_velo']
+                request.form['avg_fb_velo'] if request.form['pitched_in_game'] == 'Y' else None,
+                request.form['max_fb_velo'] if request.form['pitched_in_game'] == 'Y' else None
             ))
             conn.commit()
             conn.close()
