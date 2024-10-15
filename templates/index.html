@@ -26,6 +26,16 @@
     <button onclick="toggleTabs('add')">Add Data</button>
     <button onclick="toggleTabs('view')">View Data</button>
 
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
     <div id="add-data-tab">
         <h2>Add New Pitcher Workload Data</h2>
         <form method="POST" action="/">
@@ -56,6 +66,15 @@
 
     <div id="view-data-tab" style="display:none;">
         <h2>View Pitcher Data</h2>
+        <form method="POST" action="/filter">
+            <label>Filter by Pitcher:</label>
+            <select name="filter_pitcher_name" onchange="this.form.submit()">
+                <option value="All" {% if selected_pitcher == 'All' %}selected{% endif %}>All</option>
+                {% for pitcher in pitcher_names %}
+                    <option value="{{ pitcher }}" {% if selected_pitcher == pitcher %}selected{% endif %}>{{ pitcher }}</option>
+                {% endfor %}
+            </select>
+        </form>
         <table border="1">
             <tr>
                 <th>ID</th>
