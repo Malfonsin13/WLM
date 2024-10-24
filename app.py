@@ -1,35 +1,38 @@
 from flask import Flask, request, render_template, redirect, flash
-import sqlite3
+import psycopg2  # For PostgreSQL connection
 import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Required for flash messages
 
-# Database setup
-db_file = 'pitcher_data.db'
+# PostgreSQL Database setup
+DATABASE_URL = os.getenv('DATABASE_URL', 'your_postgresql_database_url')
+
+def get_db_connection():
+    conn = psycopg2.connect(DATABASE_URL)
+    return conn
 
 def create_table():
-    if not os.path.exists(db_file):
-        conn = sqlite3.connect(db_file)
-        c = conn.cursor()
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS pitcher_data (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                pitcher_name TEXT,
-                date TEXT,
-                total_throws INTEGER,
-                high_intent_throws INTEGER,
-                workload_score INTEGER,
-                peak_torque REAL,
-                peak_arm_speed REAL,
-                pitched_in_game TEXT,
-                touched_mound TEXT,
-                avg_fb_velo REAL,
-                max_fb_velo REAL
-            )
-        ''')
-        conn.commit()
-        conn.close()
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS pitcher_data (
+            id SERIAL PRIMARY KEY,
+            pitcher_name TEXT,
+            date TEXT,
+            total_throws INTEGER,
+            high_intent_throws INTEGER,
+            workload_score INTEGER,
+            peak_torque REAL,
+            peak_arm_speed REAL,
+            pitched_in_game TEXT,
+            touched_mound TEXT,
+            avg_fb_velo REAL,
+            max_fb_velo REAL
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
 create_table()
 
@@ -37,11 +40,11 @@ create_table()
 def index():
     if request.method == 'POST':
         try:
-            conn = sqlite3.connect(db_file)
+            conn = get_db_connection()
             c = conn.cursor()
             c.execute('''
                 INSERT INTO pitcher_data (pitcher_name, date, total_throws, high_intent_throws, workload_score, peak_torque, peak_arm_speed, pitched_in_game, touched_mound, avg_fb_velo, max_fb_velo)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ''', (
                 request.form['pitcher_name'],
                 request.form['date'],
@@ -62,7 +65,7 @@ def index():
             return f"An error occurred: {e}"
         return redirect('/')
     else:
-        conn = sqlite3.connect(db_file)
+        conn = get_db_connection()
         c = conn.cursor()
         c.execute("SELECT * FROM pitcher_data")
         rows = c.fetchall()
@@ -78,12 +81,12 @@ def index():
 @app.route('/filter', methods=['POST'])
 def filter_data():
     pitcher_name = request.form.get('filter_pitcher_name')
-    conn = sqlite3.connect(db_file)
+    conn = get_db_connection()
     c = conn.cursor()
     if pitcher_name == 'All':
         c.execute("SELECT * FROM pitcher_data")
     else:
-        c.execute("SELECT * FROM pitcher_data WHERE pitcher_name = ?", (pitcher_name,))
+        c.execute("SELECT * FROM pitcher_data WHERE pitcher_name = %s", (pitcher_name,))
     rows = c.fetchall()
     conn.close()
 
