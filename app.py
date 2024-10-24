@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Required for flash messages
 
 # PostgreSQL Database setup
-DATABASE_URL = os.getenv('DATABASE_URL', 'your_postgresql_database_url')
+DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://workloadmanagement_user:4cqXp3D5MtdYUWV91B0f5vDeMeJClOtg@dpg-csd49udds78s73bin41g-a.oregon-postgres.render.com/workloadmanagement')
 
 def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)
