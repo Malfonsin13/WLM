@@ -22,7 +22,7 @@ def create_table():
             date TEXT,
             total_throws INTEGER,
             high_intent_throws INTEGER,
-            workload_score INTEGER,
+            workload_score REAL,
             peak_torque REAL,
             peak_arm_speed REAL,
             pitched_in_game TEXT,
