@@ -40,23 +40,56 @@ create_table()
 def index():
     if request.method == 'POST':
         try:
+            pitcher_name = request.form['pitcher_name']
+            workload_score = float(request.form['workload_score'])
+
+            # Connect to the database
             conn = get_db_connection()
             c = conn.cursor()
+
+            # Calculate the 50th and 75th percentiles
             c.execute('''
-                INSERT INTO pitcher_data (pitcher_name, date, total_throws, high_intent_throws, workload_score, peak_torque, peak_arm_speed, pitched_in_game, touched_mound, avg_fb_velo, max_fb_velo)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                SELECT
+                    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY workload_score) AS p50,
+                    PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY workload_score) AS p75
+                FROM pitcher_data
+                WHERE pitcher_name = %s AND workload_score IS NOT NULL
+            ''', (pitcher_name,))
+            percentiles = c.fetchone()
+            p50, p75 = percentiles[0], percentiles[1]
+
+            # Determine the 'Type' based on the new workload_score
+            if p50 is None or p75 is None:
+                type_value = 'UNKNOWN'
+            else:
+                if workload_score < p50:
+                    type_value = 'LOW'
+                elif workload_score < p75:
+                    type_value = 'MEDIUM'
+                else:
+                    type_value = 'HIGH'
+
+            # Now insert the data including the 'type' value
+            c.execute('''
+                INSERT INTO pitcher_data (
+                    pitcher_name, date, total_throws, high_intent_throws, workload_score,
+                    peak_torque, peak_arm_speed, pitched_in_game, touched_mound, avg_fb_velo,
+                    max_fb_velo, type
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ''', (
-                request.form['pitcher_name'],
+                pitcher_name,
                 request.form['date'],
                 request.form['total_throws'],
                 request.form['high_intent_throws'],
-                request.form['workload_score'],
+                workload_score,
                 request.form['peak_torque'],
                 request.form['peak_arm_speed'],
                 request.form['pitched_in_game'],
                 request.form['touched_mound'],
                 request.form['avg_fb_velo'] if request.form['pitched_in_game'] == 'Y' else None,
-                request.form['max_fb_velo'] if request.form['pitched_in_game'] == 'Y' else None
+                request.form['max_fb_velo'] if request.form['pitched_in_game'] == 'Y' else None,
+                type_value
             ))
             conn.commit()
             conn.close()
