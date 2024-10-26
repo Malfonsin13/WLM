@@ -100,7 +100,7 @@ def index():
     else:
         conn = get_db_connection()
         c = conn.cursor()
-        c.execute("SELECT * FROM pitcher_data")
+        c.execute("SELECT * FROM pitcher_data ORDER BY date ASC")
         rows = c.fetchall()
         conn.close()
 
@@ -117,9 +117,9 @@ def filter_data():
     conn = get_db_connection()
     c = conn.cursor()
     if pitcher_name == 'All':
-        c.execute("SELECT * FROM pitcher_data")
+        c.execute("SELECT * FROM pitcher_data ORDER BY date ASC")
     else:
-        c.execute("SELECT * FROM pitcher_data WHERE pitcher_name = %s", (pitcher_name,))
+        c.execute("SELECT * FROM pitcher_data WHERE pitcher_name = %s ORDER BY date ASC", (pitcher_name,))
     rows = c.fetchall()
     conn.close()
 
