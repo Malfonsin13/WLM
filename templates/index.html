@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>Pitcher Workload Manager</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='sorttable.js') }}"></script>
     <script>
         function toggleTabs(tabId) {
             document.getElementById('add-data-tab').style.display = tabId === 'add' ? 'block' : 'none';
@@ -43,6 +44,42 @@
             disableEditing();
         };
 </script>
+<style>
+    /* Add custom styles here */
+    .controls {
+         display: flex;
+         align-items: center;
+         margin-bottom: 10px;
+    }
+
+    .controls form {
+        margin: 0;
+    }
+
+    .controls button {
+        margin-left: 10px;
+    }
+
+    table {
+       width: 100%;
+       border-collapse: collapse;
+       table-layout: auto;
+    }
+
+    table th, table td {
+        padding: 5px;
+        text-align: left;
+        border: 1px solid #ddd;
+        white-space: nowrap;
+    }
+
+    /* Adjust column widths */
+    table th, table td {
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
 </head>
 <body onload="toggleTabs('add')">
     <h1>Pitcher Workload Manager</h1>
@@ -89,7 +126,8 @@
 
 <div id="view-data-tab" style="display:none;">
     <h2>View Pitcher Data</h2>
-    <form method="POST" action="/filter">
+    <div class="controls">
+    <form method="POST" action="/filter" style="display:inline;">
         <label>Filter by Pitcher:</label>
         <select name="filter_pitcher_name" onchange="this.form.submit()">
             <option value="All" {% if selected_pitcher == 'All' %}selected{% endif %}>All</option>
@@ -98,6 +136,10 @@
             {% endfor %}
         </select>
     </form>
+    <button type="button" id="edit-button" onclick="enableEditing()">Edit</button>
+    <!-- The Save Changes button submits the form with id 'update-form' -->
+    <button type="submit" id="save-button" form="update-form" style="display:none;">Save Changes</button>
+</div>
     <form method="POST" action="/update_data">
         <table border="1">
             <tr>
@@ -143,8 +185,6 @@
             </tr>
             {% endfor %}
         </table>
-        <button type="button" id="edit-button" onclick="enableEditing()">Edit</button>
-        <button type="submit" id="save-button" style="display:none;">Save Changes</button>
     </form>
 </div>
 </body>
