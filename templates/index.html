@@ -18,8 +18,31 @@
             } else {
                 veloFields.style.display = 'none';
             }
+        }    
+        
+        function enableEditing() {
+            var inputs = document.querySelectorAll('#view-data-tab input, #view-data-tab select');
+            inputs.forEach(function(input) {
+                input.disabled = false;
+            });
+            document.getElementById('save-button').style.display = 'inline';
+            document.getElementById('edit-button').style.display = 'none';
+        }    
+
+        function disableEditing() {
+            var inputs = document.querySelectorAll('#view-data-tab input, #view-data-tab select');
+            inputs.forEach(function(input) {
+                input.disabled = true;
+            });
+            document.getElementById('save-button').style.display = 'none';
+            document.getElementById('edit-button').style.display = 'inline';
         }
-    </script>
+
+        window.onload = function() {
+            toggleTabs('add');
+            disableEditing();
+        };
+</script>
 </head>
 <body onload="toggleTabs('add')">
     <h1>Pitcher Workload Manager</h1>
@@ -64,17 +87,18 @@
         </form>
     </div>
 
-    <div id="view-data-tab" style="display:none;">
-        <h2>View Pitcher Data</h2>
-        <form method="POST" action="/filter">
-            <label>Filter by Pitcher:</label>
-            <select name="filter_pitcher_name" onchange="this.form.submit()">
-                <option value="All" {% if selected_pitcher == 'All' %}selected{% endif %}>All</option>
-                {% for pitcher in pitcher_names %}
-                    <option value="{{ pitcher }}" {% if selected_pitcher == pitcher %}selected{% endif %}>{{ pitcher }}</option>
-                {% endfor %}
-            </select>
-        </form>
+<div id="view-data-tab" style="display:none;">
+    <h2>View Pitcher Data</h2>
+    <form method="POST" action="/filter">
+        <label>Filter by Pitcher:</label>
+        <select name="filter_pitcher_name" onchange="this.form.submit()">
+            <option value="All" {% if selected_pitcher == 'All' %}selected{% endif %}>All</option>
+            {% for pitcher in pitcher_names %}
+                <option value="{{ pitcher }}" {% if selected_pitcher == pitcher %}selected{% endif %}>{{ pitcher }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    <form method="POST" action="/update_data">
         <table border="1">
             <tr>
                 <th>ID</th>
@@ -93,22 +117,35 @@
             </tr>
             {% for row in rows %}
             <tr>
-                <td>{{ row[0] }}</td>
-                <td>{{ row[1] }}</td>
-                <td>{{ row[2] }}</td>
-                <td>{{ row[3] }}</td>
-                <td>{{ row[4] }}</td>
-                <td>{{ row[5] }}</td>
-                <td>{{ row[6] }}</td>
-                <td>{{ row[7] }}</td>
-                <td>{{ row[8] }}</td>
-                <td>{{ row[9] }}</td>
-                <td>{{ row[10] }}</td>
-                <td>{{ row[11] }}</td>
-                <td>{{ row[12] }}</td>
+                <td>{{ row[0] }}</td> <!-- ID -->
+                <td><input type="text" name="pitcher_name_{{ row[0] }}" value="{{ row[1] }}" disabled></td>
+                <td><input type="date" name="date_{{ row[0] }}" value="{{ row[2]|date('Y-m-d') }}" disabled></td>
+                <td><input type="number" name="total_throws_{{ row[0] }}" value="{{ row[3] }}" disabled></td>
+                <td><input type="number" name="high_intent_throws_{{ row[0] }}" value="{{ row[4] }}" disabled></td>
+                <td><input type="number" step="0.1" name="workload_score_{{ row[0] }}" value="{{ row[5] }}" disabled></td>
+                <td><input type="number" step="0.1" name="peak_torque_{{ row[0] }}" value="{{ row[6] }}" disabled></td>
+                <td><input type="number" step="0.1" name="peak_arm_speed_{{ row[0] }}" value="{{ row[7] }}" disabled></td>
+                <td>
+                    <select name="pitched_in_game_{{ row[0] }}" disabled>
+                        <option value="N" {% if row[8] == 'N' %}selected{% endif %}>No</option>
+                        <option value="Y" {% if row[8] == 'Y' %}selected{% endif %}>Yes</option>
+                    </select>
+                </td>
+                <td>
+                    <select name="touched_mound_{{ row[0] }}" disabled>
+                        <option value="N" {% if row[9] == 'N' %}selected{% endif %}>No</option>
+                        <option value="Y" {% if row[9] == 'Y' %}selected{% endif %}>Yes</option>
+                    </select>
+                </td>
+                <td><input type="number" step="0.1" name="avg_fb_velo_{{ row[0] }}" value="{{ row[10] }}" disabled></td>
+                <td><input type="number" step="0.1" name="max_fb_velo_{{ row[0] }}" value="{{ row[11] }}" disabled></td>
+                <td>{{ row[12] }}</td> <!-- Type -->
             </tr>
             {% endfor %}
         </table>
-    </div>
+        <button type="button" id="edit-button" onclick="enableEditing()">Edit</button>
+        <button type="submit" id="save-button" style="display:none;">Save Changes</button>
+    </form>
+</div>
 </body>
 </html>
