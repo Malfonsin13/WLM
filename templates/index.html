@@ -119,7 +119,7 @@
             <tr>
                 <td>{{ row[0] }}</td> <!-- ID -->
                 <td><input type="text" name="pitcher_name_{{ row[0] }}" value="{{ row[1] }}" disabled></td>
-                <td><input type="date" name="date_{{ row[0] }}" value="{{ row[2]|date('Y-m-d') }}" disabled></td>
+                <td><input type="date" name="date_{{ row[0] }}" value="{{ row[2] }}" disabled></td>
                 <td><input type="number" name="total_throws_{{ row[0] }}" value="{{ row[3] }}" disabled></td>
                 <td><input type="number" name="high_intent_throws_{{ row[0] }}" value="{{ row[4] }}" disabled></td>
                 <td><input type="number" step="0.1" name="workload_score_{{ row[0] }}" value="{{ row[5] }}" disabled></td>
