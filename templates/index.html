@@ -150,7 +150,7 @@
     <button type="submit" id="save-button" form="update-form" style="display:none;">Save Changes</button>
 </div>
     <form method="POST" action="/update_data" id="update-form">
-        <table border="1">
+        <table border="1" class="sortable">
             <tr>
                 <th>ID</th>
                 <th>Pitcher Name</th>
@@ -169,27 +169,78 @@
             {% for row in rows %}
             <tr>
                 <td>{{ row[0] }}</td> <!-- ID -->
-                <td><input type="text" name="pitcher_name_{{ row[0] }}" value="{{ row[1] }}" disabled></td>
-                <td><input type="date" name="date_{{ row[0] }}" value="{{ row[2] }}" disabled></td>
-                <td><input type="number" name="total_throws_{{ row[0] }}" value="{{ row[3] }}" disabled></td>
-                <td><input type="number" name="high_intent_throws_{{ row[0] }}" value="{{ row[4] }}" disabled></td>
-                <td><input type="number" step="0.1" name="workload_score_{{ row[0] }}" value="{{ row[5] }}" disabled></td>
-                <td><input type="number" step="0.1" name="peak_torque_{{ row[0] }}" value="{{ row[6] }}" disabled></td>
-                <td><input type="number" step="0.1" name="peak_arm_speed_{{ row[0] }}" value="{{ row[7] }}" disabled></td>
-                <td>
-                    <select name="pitched_in_game_{{ row[0] }}" disabled>
+            <td>
+                <span class="view-mode">{{ row[1] }}</span>
+                <span class="edit-mode" style="display:none;">
+                    <input type="text" name="pitcher_name_{{ row[0] }}" value="{{ row[1] }}">
+                </span>
+            </td>
+            <td>
+                <span class="view-mode">{{ row[2] }}</span>
+                <span class="edit-mode" style="display:none;">
+                    <input type="date" name="date_{{ row[0] }}" value="{{ row[2] }}">
+                </span>
+            </td>
+            <td>
+                <span class="view-mode">{{ row[3] }}</span>
+                <span class="edit-mode" style="display:none;">
+                    <input type="number" name="total_throws_{{ row[0] }}" value="{{ row[3] }}">
+                </span>
+            </td>
+            <td>
+                <span class="view-mode">{{ row[4] }}</span>
+                <span class="edit-mode" style="display:none;">
+                    <input type="number" name="high_intent_throws_{{ row[0] }}" value="{{ row[4] }}">
+                </span>
+            </td>
+            <td>
+                <span class="view-mode">{{ row[5] }}</span>
+                <span class="edit-mode" style="display:none;">
+                    <input type="number" name="workload_score_{{ row[0] }}" value="{{ row[5] }}">
+                </span>
+            </td>
+            <td>
+                <span class="view-mode">{{ row[6] }}</span>
+                <span class="edit-mode" style="display:none;">
+                    <input type="number" name="peak_torque_{{ row[0] }}" value="{{ row[6] }}">
+                </span>
+            </td>
+            <td>
+                <span class="view-mode">{{ row[7] }}</span>
+                <span class="edit-mode" style="display:none;">
+                    <input type="number" name="peak_arm_speed_{{ row[0] }}" value="{{ row[7] }}">
+                </span>
+            </td>
+            <td>
+                <span class="view-mode">{{ row[8] }}</span>
+                <span class="edit-mode" style="display:none;">
+                    <select name="pitched_in_game_{{ row[0] }}">
                         <option value="N" {% if row[8] == 'N' %}selected{% endif %}>No</option>
                         <option value="Y" {% if row[8] == 'Y' %}selected{% endif %}>Yes</option>
                     </select>
-                </td>
-                <td>
-                    <select name="touched_mound_{{ row[0] }}" disabled>
+                </span>
+            </td>
+            <td>
+                <span class="view-mode">{{ row[9] }}</span>
+                <span class="edit-mode" style="display:none;">
+                    <select name="touched_mound_{{ row[0] }}">
                         <option value="N" {% if row[9] == 'N' %}selected{% endif %}>No</option>
                         <option value="Y" {% if row[9] == 'Y' %}selected{% endif %}>Yes</option>
                     </select>
-                </td>
-                <td><input type="number" step="0.1" name="avg_fb_velo_{{ row[0] }}" value="{{ row[10] }}" disabled></td>
-                <td><input type="number" step="0.1" name="max_fb_velo_{{ row[0] }}" value="{{ row[11] }}" disabled></td>
+                </span>
+            </td>
+            <td>
+                <span class="view-mode">{{ row[10] }}</span>
+                <span class="edit-mode" style="display:none;">
+                    <input type="number" step="0.1" name="avg_fb_velo_{{ row[0] }}" value="{{ row[10] }}">
+                </span>
+            </td>
+            <td>
+                <span class="view-mode">{{ row[11] }}</span>
+                <span class="edit-mode" style="display:none;">
+                    <input type="number" step="0.1" name="max_fb_velo_{{ row[0] }}" value="{{ row[11] }}">
+                </span>
+            </td>
                 <td>{{ row[12] }}</td> <!-- Type -->
             </tr>
             {% endfor %}
