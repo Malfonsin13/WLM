@@ -22,18 +22,26 @@
         }    
         
         function enableEditing() {
-            var inputs = document.querySelectorAll('#view-data-tab input, #view-data-tab select');
-            inputs.forEach(function(input) {
-                input.disabled = false;
+            var viewElements = document.querySelectorAll('#view-data-tab .view-mode');
+            var editElements = document.querySelectorAll('#view-data-tab .edit-mode');
+            viewElements.forEach(function(element) {
+                element.style.display = 'none';
+            });
+            editElements.forEach(function(element) {
+                element.style.display = 'inline';
             });
             document.getElementById('save-button').style.display = 'inline';
             document.getElementById('edit-button').style.display = 'none';
-        }    
+        }
 
         function disableEditing() {
-            var inputs = document.querySelectorAll('#view-data-tab input, #view-data-tab select');
-            inputs.forEach(function(input) {
-                input.disabled = true;
+            var viewElements = document.querySelectorAll('#view-data-tab .view-mode');
+            var editElements = document.querySelectorAll('#view-data-tab .edit-mode');
+            viewElements.forEach(function(element) {
+                element.style.display = 'inline';
+            });
+            editElements.forEach(function(element) {
+                element.style.display = 'none';
             });
             document.getElementById('save-button').style.display = 'none';
             document.getElementById('edit-button').style.display = 'inline';
@@ -90,7 +98,7 @@
     }
 </style>
 </head>
-<body onload="toggleTabs('add')">
+<body>
     <h1>Pitcher Workload Manager</h1>
     <button onclick="toggleTabs('add')">Add Data</button>
     <button onclick="toggleTabs('view')">View Data</button>
