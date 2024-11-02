@@ -38,3 +38,14 @@ th {
     background-color: #FFC72C;
     color: #0A2351;
 }
+
+.red-cell {
+    background-color: red;
+    color: white;
+}
+
+.green-cell {
+    background-color: limegreen;
+    color: black;
+}
+
