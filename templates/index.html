@@ -4,11 +4,26 @@
     <meta charset="utf-8">
     <title>Pitcher Workload Manager</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="{{ url_for('static', filename='sorttable.js') }}"></script>
+    <!-- Include DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Include DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <!-- Remove or comment out the sorttable.js inclusion -->
+    <!-- <script src="{{ url_for('static', filename='sorttable.js') }}"></script> -->
     <script>
         function toggleTabs(tabId) {
             document.getElementById('add-data-tab').style.display = tabId === 'add' ? 'block' : 'none';
             document.getElementById('view-data-tab').style.display = tabId === 'view' ? 'block' : 'none';
+
+            if (tabId === 'view') {
+                initializeDataTable();
+            } else {
+                if ($.fn.DataTable.isDataTable('#pitcherTable')) {
+                    $('#pitcherTable').DataTable().destroy();
+                }
+            }
         }
 
         function toggleVeloFields() {
@@ -22,6 +37,11 @@
         }    
         
         function enableEditing() {
+            // Destroy DataTable before enabling editing
+            if ($.fn.DataTable.isDataTable('#pitcherTable')) {
+                $('#pitcherTable').DataTable().destroy();
+            }
+
             var viewElements = document.querySelectorAll('#view-data-tab .view-mode');
             var editElements = document.querySelectorAll('#view-data-tab .edit-mode');
             viewElements.forEach(function(element) {
@@ -45,58 +65,70 @@
             });
             document.getElementById('save-button').style.display = 'none';
             document.getElementById('edit-button').style.display = 'inline';
+
+            // Re-initialize DataTable after editing
+            initializeDataTable();
+        }
+
+        function initializeDataTable() {
+            if (!$.fn.DataTable.isDataTable('#pitcherTable')) {
+                $('#pitcherTable').DataTable({
+                    "order": [[2, "asc"]], // Adjust column index for default sorting
+                    "columnDefs": [
+                        { "orderable": false, "targets": [0, 12] } // Disable sorting on ID and Type columns
+                    ]
+                });
+            }
         }
 
         window.onload = function() {
-            toggleTabs('view');
+            toggleTabs('view'); // Show View Data tab by default
             disableEditing();
         };
-</script>
-<style>
-    /* Add custom styles here */
-    .controls {
-         display: flex;
-         align-items: center;
-         margin-bottom: 10px;
-    }
+    </script>
+    <style>
+        /* Add custom styles here */
+        .controls {
+             display: flex;
+             align-items: center;
+             margin-bottom: 10px;
+        }
 
-    .controls form {
-        margin: 0;
-    }
+        .controls form {
+            margin: 0;
+        }
 
-    .controls button {
-        margin-left: 10px;
-    }
+        .controls button {
+            margin-left: 10px;
+        }
 
-    table {
-       width: 100%;
-       border-collapse: collapse;
-       table-layout: auto;
-    }
+        table {
+           width: 100%;
+           border-collapse: collapse;
+           table-layout: auto;
+        }
 
-    table th, table td {
-        padding: 5px;
-        text-align: left;
-        border: 1px solid #ddd;
-        white-space: nowrap;
-    }
+        table th, table td {
+            padding: 5px;
+            text-align: left;
+            border: 1px solid #ddd;
+            white-space: nowrap;
+        }
 
-    /* Adjust column widths */
-    table th, table td {
-        max-width: 150px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    
-    }
+        /* Adjust column widths */
+        table th, table td {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 
-    /* Adjust column widths */
-    table th, table td {
-        max-width: 150px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-</style>
+        .edit-mode input,
+        .edit-mode select {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
 </head>
 <body>
     <h1>Pitcher Workload Manager</h1>
@@ -113,7 +145,7 @@
       {% endif %}
     {% endwith %}
 
-    <div id="add-data-tab">
+    <div id="add-data-tab" style="display: none;">
         <h2>Add New Pitcher Workload Data</h2>
         <form method="POST" action="/">
             <label>Pitcher Name:</label><input type="text" name="pitcher_name" required><br>
@@ -141,119 +173,123 @@
         </form>
     </div>
 
-<div id="view-data-tab" style="display:none;">
-    <h2>View Pitcher Data</h2>
-    <div class="controls">
-    <form method="POST" action="/filter" style="display:inline;">
-        <label>Filter by Pitcher:</label>
-        <select name="filter_pitcher_name" onchange="this.form.submit()">
-            <option value="All" {% if selected_pitcher == 'All' %}selected{% endif %}>All</option>
-            {% for pitcher in pitcher_names %}
-                <option value="{{ pitcher }}" {% if selected_pitcher == pitcher %}selected{% endif %}>{{ pitcher }}</option>
-            {% endfor %}
-        </select>
-    </form>
-    <button type="button" id="edit-button" onclick="enableEditing()">Edit</button>
-    <!-- The Save Changes button submits the form with id 'update-form' -->
-    <button type="submit" id="save-button" form="update-form" style="display:none;">Save Changes</button>
-</div>
-    <form method="POST" action="/update_data" id="update-form">
-        <table border="1" class="sortable">
-            <tr>
-                <th>ID</th>
-                <th>Pitcher Name</th>
-                <th>Date</th>
-                <th>Total Throws</th>
-                <th>High Intent Throws</th>
-                <th>Workload Score</th>
-                <th>Peak Torque</th>
-                <th>Peak Arm Speed</th>
-                <th>Pitched in Game</th>
-                <th>Touched Mound</th>
-                <th>Avg FB Velo</th>
-                <th>Max FB Velo</th>
-                <th>Type</th>                
-            </tr>
-            {% for row in rows %}
-            <tr>
-                <td>{{ row[0] }}</td> <!-- ID -->
-            <td>
-                <span class="view-mode">{{ row[1] }}</span>
-                <span class="edit-mode" style="display:none;">
-                    <input type="text" name="pitcher_name_{{ row[0] }}" value="{{ row[1] }}">
-                </span>
-            </td>
-            <td>
-                <span class="view-mode">{{ row[2] }}</span>
-                <span class="edit-mode" style="display:none;">
-                    <input type="date" name="date_{{ row[0] }}" value="{{ row[2] }}">
-                </span>
-            </td>
-            <td>
-                <span class="view-mode">{{ row[3] }}</span>
-                <span class="edit-mode" style="display:none;">
-                    <input type="number" name="total_throws_{{ row[0] }}" value="{{ row[3] }}">
-                </span>
-            </td>
-            <td>
-                <span class="view-mode">{{ row[4] }}</span>
-                <span class="edit-mode" style="display:none;">
-                    <input type="number" name="high_intent_throws_{{ row[0] }}" value="{{ row[4] }}">
-                </span>
-            </td>
-            <td>
-                <span class="view-mode">{{ row[5] }}</span>
-                <span class="edit-mode" style="display:none;">
-                    <input type="number" name="workload_score_{{ row[0] }}" value="{{ row[5] }}">
-                </span>
-            </td>
-            <td>
-                <span class="view-mode">{{ row[6] }}</span>
-                <span class="edit-mode" style="display:none;">
-                    <input type="number" name="peak_torque_{{ row[0] }}" value="{{ row[6] }}">
-                </span>
-            </td>
-            <td>
-                <span class="view-mode">{{ row[7] }}</span>
-                <span class="edit-mode" style="display:none;">
-                    <input type="number" name="peak_arm_speed_{{ row[0] }}" value="{{ row[7] }}">
-                </span>
-            </td>
-            <td>
-                <span class="view-mode">{{ row[8] }}</span>
-                <span class="edit-mode" style="display:none;">
-                    <select name="pitched_in_game_{{ row[0] }}">
-                        <option value="N" {% if row[8] == 'N' %}selected{% endif %}>No</option>
-                        <option value="Y" {% if row[8] == 'Y' %}selected{% endif %}>Yes</option>
-                    </select>
-                </span>
-            </td>
-            <td>
-                <span class="view-mode">{{ row[9] }}</span>
-                <span class="edit-mode" style="display:none;">
-                    <select name="touched_mound_{{ row[0] }}">
-                        <option value="N" {% if row[9] == 'N' %}selected{% endif %}>No</option>
-                        <option value="Y" {% if row[9] == 'Y' %}selected{% endif %}>Yes</option>
-                    </select>
-                </span>
-            </td>
-            <td>
-                <span class="view-mode">{{ row[10] }}</span>
-                <span class="edit-mode" style="display:none;">
-                    <input type="number" step="0.1" name="avg_fb_velo_{{ row[0] }}" value="{{ row[10] }}">
-                </span>
-            </td>
-            <td>
-                <span class="view-mode">{{ row[11] }}</span>
-                <span class="edit-mode" style="display:none;">
-                    <input type="number" step="0.1" name="max_fb_velo_{{ row[0] }}" value="{{ row[11] }}">
-                </span>
-            </td>
-                <td>{{ row[12] }}</td> <!-- Type -->
-            </tr>
-            {% endfor %}
-        </table>
-    </form>
-</div>
+    <div id="view-data-tab">
+        <h2>View Pitcher Data</h2>
+        <div class="controls">
+            <form method="POST" action="/filter" style="display:inline;">
+                <label>Filter by Pitcher:</label>
+                <select name="filter_pitcher_name" onchange="this.form.submit()">
+                    <option value="All" {% if selected_pitcher == 'All' %}selected{% endif %}>All</option>
+                    {% for pitcher in pitcher_names %}
+                        <option value="{{ pitcher }}" {% if selected_pitcher == pitcher %}selected{% endif %}>{{ pitcher }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            <button type="button" id="edit-button" onclick="enableEditing()">Edit</button>
+            <!-- The Save Changes button submits the form with id 'update-form' -->
+            <button type="submit" id="save-button" form="update-form" style="display:none;">Save Changes</button>
+        </div>
+        <form method="POST" action="/update_data" id="update-form">
+            <table id="pitcherTable" class="display">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Pitcher Name</th>
+                        <th>Date</th>
+                        <th>Total Throws</th>
+                        <th>High Intent Throws</th>
+                        <th>Workload Score</th>
+                        <th>Peak Torque</th>
+                        <th>Peak Arm Speed</th>
+                        <th>Pitched in Game</th>
+                        <th>Touched Mound</th>
+                        <th>Avg FB Velo</th>
+                        <th>Max FB Velo</th>
+                        <th>Type</th>                
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr>
+                        <td>{{ row[0] }}</td> <!-- ID -->
+                        <td>
+                            <span class="view-mode">{{ row[1] }}</span>
+                            <span class="edit-mode" style="display:none;">
+                                <input type="text" name="pitcher_name_{{ row[0] }}" value="{{ row[1] }}">
+                            </span>
+                        </td>
+                        <td>
+                            <span class="view-mode">{{ row[2] }}</span>
+                            <span class="edit-mode" style="display:none;">
+                                <input type="date" name="date_{{ row[0] }}" value="{{ row[2] }}">
+                            </span>
+                        </td>
+                        <td>
+                            <span class="view-mode">{{ row[3] }}</span>
+                            <span class="edit-mode" style="display:none;">
+                                <input type="number" name="total_throws_{{ row[0] }}" value="{{ row[3] }}">
+                            </span>
+                        </td>
+                        <td>
+                            <span class="view-mode">{{ row[4] }}</span>
+                            <span class="edit-mode" style="display:none;">
+                                <input type="number" name="high_intent_throws_{{ row[0] }}" value="{{ row[4] }}">
+                            </span>
+                        </td>
+                        <td>
+                            <span class="view-mode">{{ row[5] }}</span>
+                            <span class="edit-mode" style="display:none;">
+                                <input type="number" name="workload_score_{{ row[0] }}" value="{{ row[5] }}">
+                            </span>
+                        </td>
+                        <td>
+                            <span class="view-mode">{{ row[6] }}</span>
+                            <span class="edit-mode" style="display:none;">
+                                <input type="number" name="peak_torque_{{ row[0] }}" value="{{ row[6] }}">
+                            </span>
+                        </td>
+                        <td>
+                            <span class="view-mode">{{ row[7] }}</span>
+                            <span class="edit-mode" style="display:none;">
+                                <input type="number" name="peak_arm_speed_{{ row[0] }}" value="{{ row[7] }}">
+                            </span>
+                        </td>
+                        <td>
+                            <span class="view-mode">{{ row[8] }}</span>
+                            <span class="edit-mode" style="display:none;">
+                                <select name="pitched_in_game_{{ row[0] }}">
+                                    <option value="N" {% if row[8] == 'N' %}selected{% endif %}>No</option>
+                                    <option value="Y" {% if row[8] == 'Y' %}selected{% endif %}>Yes</option>
+                                </select>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="view-mode">{{ row[9] }}</span>
+                            <span class="edit-mode" style="display:none;">
+                                <select name="touched_mound_{{ row[0] }}">
+                                    <option value="N" {% if row[9] == 'N' %}selected{% endif %}>No</option>
+                                    <option value="Y" {% if row[9] == 'Y' %}selected{% endif %}>Yes</option>
+                                </select>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="view-mode">{{ row[10] }}</span>
+                            <span class="edit-mode" style="display:none;">
+                                <input type="number" step="0.1" name="avg_fb_velo_{{ row[0] }}" value="{{ row[10] }}">
+                            </span>
+                        </td>
+                        <td>
+                            <span class="view-mode">{{ row[11] }}</span>
+                            <span class="edit-mode" style="display:none;">
+                                <input type="number" step="0.1" name="max_fb_velo_{{ row[0] }}" value="{{ row[11] }}">
+                            </span>
+                        </td>
+                        <td>{{ row[12] }}</td> <!-- Type -->
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </form>
+    </div>
 </body>
 </html>
