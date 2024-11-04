@@ -77,10 +77,57 @@
                     "order": [[2, "asc"]], // Adjust column index for default sorting
                     "columnDefs": [
                         { "orderable": false, "targets": [0, 12] } // Disable sorting on ID and Type columns
-                    ]
+                    ],
+                    "drawCallback": function(settings) {
+                        applyWorkloadScoreColors();
+                    }
                 });
             }
         }
+
+        function applyWorkloadScoreColors() {
+            var table = $('#pitcherTable').DataTable();
+            var workloadScores = [];
+            // Column index for Workload Score
+            var workloadScoreColumnIndex = 5;
+
+            // Get visible rows
+            var rows = table.rows({ filter: 'applied' }).nodes();
+
+            // Extract workload scores from visible rows
+            $(rows).each(function() {
+                var cell = $(this).find('td').eq(workloadScoreColumnIndex);
+                var workloadScoreText = cell.find('.view-mode').text();
+                var workloadScore = parseFloat(workloadScoreText);
+                if (!isNaN(workloadScore)) {
+                    workloadScores.push(workloadScore);
+            }
+        });
+
+        if (workloadScores.length === 0) return;
+
+        // Calculate min and max of the visible workload scores
+        var minScore = Math.min.apply(null, workloadScores);
+        var maxScore = Math.max.apply(null, workloadScores);
+
+        // Define the color scale using chroma.js (from red to blue)
+        var colorScale = chroma.scale('RdBu').domain([maxScore, minScore]);
+
+        // Apply colors to the cells
+        $(rows).each(function() {
+            var cell = $(this).find('td').eq(workloadScoreColumnIndex);
+            var workloadScoreText = cell.find('.view-mode').text();
+            var workloadScore = parseFloat(workloadScoreText);
+            if (!isNaN(workloadScore)) {
+                var color = colorScale(workloadScore).hex();
+                cell.css('background-color', color);
+                // Adjust text color for contrast
+                var textColor = chroma.contrast(color, 'white') > 4.5 ? 'white' : 'black';
+                cell.css('color', textColor);
+            }
+        });
+    }
+
 
         window.onload = function() {
             toggleTabs('view'); // Show View Data tab by default
