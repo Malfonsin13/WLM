@@ -10,8 +10,9 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Include DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-    <!-- Remove or comment out the sorttable.js inclusion -->
-    <!-- <script src="{{ url_for('static', filename='sorttable.js') }}"></script> -->
+    <!-- Include chroma.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js"></script>
+
     <script>
         function toggleTabs(tabId) {
             document.getElementById('add-data-tab').style.display = tabId === 'add' ? 'block' : 'none';
